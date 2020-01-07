@@ -44,14 +44,14 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="play_button">
        <property name="text">
         <string>Начать деградацию</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="history_button">
        <property name="palette">
         <palette>
          <active>
@@ -473,13 +473,26 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="exit_button">
        <property name="text">
         <string>Выход</string>
        </property>
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QLabel" name="background">
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>-5</y>
+      <width>821</width>
+      <height>581</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

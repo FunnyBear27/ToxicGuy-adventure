@@ -1,6 +1,9 @@
 import os
 import pygame
 import sys
+from PyQt5 import uic
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 
 
 FPS = 50
@@ -15,7 +18,7 @@ def generate_level(level):
             if level[y][x] == '.':
                 Tile('empty', x, y)
             elif level[y][x] == '#':
-                Killer_Tile('wall', x, y)
+                KillerTile('wall', x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 new_player = Player(x, y)
@@ -62,6 +65,20 @@ class Border(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x, y + 50, x + 50, y + 50)
 
 
+class StartScreen(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('beginning screen.ui', self)
+        self.initUI()
+
+    def initUI(self):
+        self.exit_button.clicked.connect(self.exit)
+        self.history_button.clicked.connect(self.story)
+
+    def story(self):
+        pass
+
+
 class Camera:
     # зададим начальный сдвиг камеры
     def __init__(self):
@@ -88,7 +105,7 @@ class Tile(pygame.sprite.Sprite):
                                                tile_height * pos_y)
 
 
-class Killer_Tile(pygame.sprite.Sprite):
+class KillerTile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(killer_tiles_group, all_sprites)
         self.image = tile_images[tile_type]
@@ -109,7 +126,7 @@ class Player(pygame.sprite.Sprite):
         if 273 in args and self.flag:
             self.rect.y -= 4
             self.rect.x += 4
-            print(self.rect.x, self.rect.y)
+            return False
 
         if pygame.K_RIGHT in args and self.flag:
             self.rect.x += tile_width
@@ -147,32 +164,32 @@ tile_images = {'wall': load_image('grass 2.png'),
                'soil': load_image('soil.png'),
                'cloud': load_image('cloud.png')}
 player_image = load_image('hero.png')
-fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
 
 tile_width = tile_height = 64
 
 player, level_x, level_y = generate_level(load_level('map.txt'))
-screen.blit(fon, (0, 0))
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = StartScreen()
+    ex.show()
+    sys.exit(app.exec())
 
 running = True
-run = True
 pygame.display.flip()
 pygame.init()
-a = True
 
-while run:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.KEYDOWN:
-            all_sprites.draw(screen)
-            tiles_group.draw(screen)
-            player_group.draw(screen)
-            player_group.update()
-            tiles_group.update()
-            all_sprites.update()
-            pygame.display.flip()
-            run = False
+screen.fill(pygame.Color('white'))
+all_sprites.draw(screen)
+tiles_group.draw(screen)
+player_group.draw(screen)
+player_group.update()
+tiles_group.update()
+all_sprites.update()
+pygame.display.flip()
+
+a = True
 
 while running:
     while a:
@@ -186,15 +203,10 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == 273:
                 for i in range(32):
-                    print(i)
                     touch = player.update(273)
                     screen.fill(pygame.Color('white'))
-                    all_sprites.draw(screen)
-                    tiles_group.draw(screen)
                     player_group.draw(screen)
                     player_group.update()
-                    tiles_group.update()
-                    all_sprites.update()
                     pygame.display.flip()
             else:
                 a = player.update(event.key)
