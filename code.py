@@ -60,6 +60,11 @@ class Border(pygame.sprite.Sprite):
         self.add(vertical_borders)
         self.image = pygame.Surface([1, 50])
         self.rect = pygame.Rect(x, y, x, y + 50)
+
+        self.add(vertical_borders)
+        self.image = pygame.Surface([1, 50])
+        self.rect = pygame.Rect(x + 50, y, x + 50, y + 50)
+
         self.add(horizontal_borders)
         self.image = pygame.Surface([50, 1])
         self.rect = pygame.Rect(x, y + 50, x + 50, y + 50)
@@ -72,10 +77,14 @@ class StartScreen(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        self.exit_button.clicked.connect(self.exit)
+        self.play_button.clicked.connect(self.begin)
         self.history_button.clicked.connect(self.story)
 
+    def begin(self):
+        print('d')
+
     def story(self):
+        print('h')
         pass
 
 
@@ -123,21 +132,21 @@ class Player(pygame.sprite.Sprite):
                                                tile_height * pos_y + 5)
 
     def update(self, *args):
-        if 273 in args and self.flag:
+        if 273 in args and self.flag and self.rect.x < 3840:
             self.rect.y -= 4
             self.rect.x += 4
             return False
 
-        if pygame.K_RIGHT in args and self.flag:
+        if pygame.K_RIGHT in args and self.flag and self.rect.x < 3904:
             self.rect.x += tile_width
 
-        if pygame.K_LEFT in args and self.flag:
+        if pygame.K_LEFT in args and self.flag and self.rect.x > 0:
             self.rect.x -= tile_width
 
         if not self.flag:
             self.rect.y += 5
 
-        if pygame.sprite.spritecollideany(self, killer_tiles_group):
+        if pygame.sprite.spritecollideany(self, vertical_borders, horizontal_borders):
             self.flag = True
             return False
         else:
@@ -152,6 +161,13 @@ player_group = pygame.sprite.Group()
 killer_tiles_group = pygame.sprite.Group()
 horizontal_borders = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = StartScreen()
+    ex.show()
+    sys.exit(app.exec())
 
 clock = pygame.time.Clock()
 camera = Camera()
@@ -168,13 +184,6 @@ player_image = load_image('hero.png')
 tile_width = tile_height = 64
 
 player, level_x, level_y = generate_level(load_level('map.txt'))
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = StartScreen()
-    ex.show()
-    sys.exit(app.exec())
 
 running = True
 pygame.display.flip()
