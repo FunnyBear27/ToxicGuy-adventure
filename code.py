@@ -1,9 +1,12 @@
 import os
 import pygame
 import sys
+from PyQt5 import uic
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 
 
-FPS = 50
+FPS = 10
 WIDTH = 800
 HEIGHT = 800
 
@@ -50,6 +53,24 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
+class StartScreen(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('beginning screen.ui', self)
+        self.initUI()
+
+    def initUI(self):
+        self.play_button.clicked.connect(self.begin)
+        self.history_button.clicked.connect(self.story)
+
+    def begin(self):
+        self.close()
+
+    def story(self):
+        print('h')
+        pass
+
+
 class Border(pygame.sprite.Sprite):
     # строго вертикальный или строго горизонтальный отрезок
     def __init__(self, x, y):
@@ -57,6 +78,11 @@ class Border(pygame.sprite.Sprite):
         self.add(vertical_borders)
         self.image = pygame.Surface([1, 50])
         self.rect = pygame.Rect(x, y, x, y + 50)
+
+        self.add(vertical_borders)
+        self.image = pygame.Surface([1, 50])
+        self.rect = pygame.Rect(x + 50, y, x + 50, y + 50)
+
         self.add(horizontal_borders)
         self.image = pygame.Surface([50, 1])
         self.rect = pygame.Rect(x, y + 50, x + 50, y + 50)
@@ -99,6 +125,7 @@ class Killer_Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         self.flag = True
+        self.count = 0
         self.clock = pygame.time.Clock()
         super().__init__(player_group, all_sprites)
         self.image = player_image
@@ -106,18 +133,29 @@ class Player(pygame.sprite.Sprite):
                                                tile_height * pos_y + 5)
 
     def update(self, *args):
-        if 273 in args and self.flag:
-            self.rect.y -= 4
-            self.rect.x += 4
-            print(self.rect.x, self.rect.y)
+        self.count += 1
+        if self.count % 2 == 0:
+            self.image = go_image
+        else:
+            self.image = player_image
+        if 273 in args and pygame.K:
+            self.rect.y -= 8
+            self.rect.x += 6
+            return True
 
-        if pygame.K_RIGHT in args and self.flag:
-            self.rect.x += tile_width
+        if 'K_RIGHT' in args and self.flag and self.rect.x < 3904\
+                and not\
+                pygame.sprite.spritecollideany(self,
+                                               vertical_borders):
+            self.rect.x += 5
 
-        if pygame.K_LEFT in args and self.flag:
-            self.rect.x -= tile_width
+        if 'K_LEFT' in args and self.flag and self.rect.x > 0\
+                and not\
+                pygame.sprite.spritecollideany(self,
+                                               vertical_borders):
+            self.rect.x -= 5
 
-        if not self.flag:
+        elif not self.flag:
             self.rect.y += 5
 
         if pygame.sprite.spritecollideany(self, killer_tiles_group):
@@ -136,6 +174,12 @@ killer_tiles_group = pygame.sprite.Group()
 horizontal_borders = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
 
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = StartScreen()
+    ex.show()
+    # sys.exit(app.exec())
+
 clock = pygame.time.Clock()
 camera = Camera()
 
@@ -143,11 +187,12 @@ screen = pygame.display.set_mode((800, 550))
 screen.fill(pygame.Color('blue'))
 
 tile_images = {'wall': load_image('grass 2.png'),
-               'empty': load_image('sky.png'),
+               'empty': load_image('transparent.png'),
                'soil': load_image('soil.png'),
                'cloud': load_image('cloud.png')}
 player_image = load_image('hero.png')
-fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
+go_image = load_image('hero_go.png')
+fon = pygame.transform.scale(load_image('пляж.png'), (WIDTH, HEIGHT))
 
 tile_width = tile_height = 64
 
@@ -160,46 +205,44 @@ pygame.display.flip()
 pygame.init()
 a = True
 
-while run:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.KEYDOWN:
-            all_sprites.draw(screen)
-            tiles_group.draw(screen)
-            player_group.draw(screen)
-            player_group.update()
-            tiles_group.update()
-            all_sprites.update()
-            pygame.display.flip()
-            run = False
-
 while running:
     while a:
         player_group.draw(screen)
         a = player_group.update()
         clock.tick(FPS)
 
+    keys = pygame.key.get_pressed()  # checking pressed keys
+
+    if keys[pygame.K_LEFT]:
+        touch = player.update('K_LEFT')
+    if keys[pygame.K_RIGHT]:
+        touch = player.update('K_RIGHT')
+
+    all_sprites.draw(screen)
+    tiles_group.draw(screen)
+    player_group.draw(screen)
+    player_group.update()
+    tiles_group.update()
+    all_sprites.update()
+    pygame.display.flip()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == 273:
-                for i in range(32):
-                    print(i)
-                    touch = player.update(273)
-                    screen.fill(pygame.Color('white'))
+                for i in range(16):
+                    screen.blit(fon, (0, 0))
+                    touch = player.update(273, touch)
                     all_sprites.draw(screen)
                     tiles_group.draw(screen)
                     player_group.draw(screen)
-                    player_group.update()
                     tiles_group.update()
-                    all_sprites.update()
                     pygame.display.flip()
             else:
                 a = player.update(event.key)
 
-    screen.fill(pygame.Color('white'))
+    screen.blit(fon, (0, 0))
     all_sprites.draw(screen)
     tiles_group.draw(screen)
     player_group.draw(screen)
