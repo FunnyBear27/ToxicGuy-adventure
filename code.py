@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
 
-FPS = 10
+FPS = 15
 WIDTH = 800
 HEIGHT = 800
 
@@ -18,6 +18,7 @@ def generate_level(level):
             if level[y][x] == '.':
                 Tile('empty', x, y)
             elif level[y][x] == '#':
+                Border(x, y)
                 Killer_Tile('wall', x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
@@ -77,15 +78,15 @@ class Border(pygame.sprite.Sprite):
         super().__init__(all_sprites)
         self.add(vertical_borders)
         self.image = pygame.Surface([1, 50])
-        self.rect = pygame.Rect(x, y, x, y + 50)
+        self.rect = pygame.Rect(x, y, 1, 50)
 
         self.add(vertical_borders)
         self.image = pygame.Surface([1, 50])
-        self.rect = pygame.Rect(x + 50, y, x + 50, y + 50)
+        self.rect = pygame.Rect(x + 50, y, 1, 50)
 
         self.add(horizontal_borders)
         self.image = pygame.Surface([50, 1])
-        self.rect = pygame.Rect(x, y + 50, x + 50, y + 50)
+        self.rect = pygame.Rect(x, y + 50, 50, 1)
 
 
 class Camera:
@@ -133,34 +134,63 @@ class Player(pygame.sprite.Sprite):
                                                tile_height * pos_y + 5)
 
     def update(self, *args):
+        print(self.flag)
         self.count += 1
         if self.count % 2 == 0:
             self.image = go_image
-        else:
+
+        if self.count % 2 == 1:
             self.image = player_image
-        if 273 in args and pygame.K:
-            self.rect.y -= 8
-            self.rect.x += 6
-            return True
 
-        if 'K_RIGHT' in args and self.flag and self.rect.x < 3904\
-                and not\
-                pygame.sprite.spritecollideany(self,
-                                               vertical_borders):
-            self.rect.x += 5
+        if 273 in args and 'K_RIGHT' in args:
+            if args[2] < 16:
+                self.rect.y -= 8
+                self.rect.x += 6
 
-        if 'K_LEFT' in args and self.flag and self.rect.x > 0\
-                and not\
-                pygame.sprite.spritecollideany(self,
-                                               vertical_borders):
-            self.rect.x -= 5
+            if args[2] > 16 and not self.flag:
+                self.rect.y += 8
+                self.rect.x += 6
 
+            if args[2] == 31 and self.flag:
+                self.rect.y -= 8
+
+        if 273 in args and 'K_LEFT' in args:
+            if args[2] < 16:
+                print(args)
+                self.rect.y -= 8
+                self.rect.x -= 6
+
+            if args[2] > 16 and not self.flag:
+                print(args)
+                self.rect.y += 8
+                self.rect.x += 6
+
+            if args[2] == 31 and self.flag:
+                self.rect.y -= 8
+
+        elif 273 in args:
+            if args[2] < 16:
+                self.rect.y -= 8
+
+            if args[2] > 16 and not self.flag:
+                self.rect.y += 8
+
+            if args[2] == 31 and self.flag:
+                self.rect.y -= 8
+
+        if 'K_RIGHT' in args and self.flag:
+            self.rect.x += 10
+
+        if 'K_LEFT' in args and self.flag:
+            self.rect.x -= 10
         elif not self.flag:
-            self.rect.y += 5
+            self.rect.y += 10
 
         if pygame.sprite.spritecollideany(self, killer_tiles_group):
-            self.flag = True
-            return False
+            if not pygame.sprite.spritecollideany(self, vertical_borders):
+                if not pygame.sprite.spritecollideany(self, horizontal_borders):
+                    self.flag = True
+                    return False
         else:
             self.flag = False
             return True
@@ -173,12 +203,13 @@ player_group = pygame.sprite.Group()
 killer_tiles_group = pygame.sprite.Group()
 horizontal_borders = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
+flaggy = False
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = StartScreen()
-    ex.show()
-    # sys.exit(app.exec())
+# if __name__ == '__main__':
+#     app = QApplication(sys.argv)
+#     ex = StartScreen()
+#     ex.show()
+#     sys.exit(app.exec())
 
 clock = pygame.time.Clock()
 camera = Camera()
@@ -192,7 +223,7 @@ tile_images = {'wall': load_image('grass 2.png'),
                'cloud': load_image('cloud.png')}
 player_image = load_image('hero.png')
 go_image = load_image('hero_go.png')
-fon = pygame.transform.scale(load_image('пляж.png'), (WIDTH, HEIGHT))
+fon = pygame.transform.scale(load_image('anim.gif'), (WIDTH, HEIGHT))
 
 tile_width = tile_height = 64
 
@@ -201,9 +232,9 @@ screen.blit(fon, (0, 0))
 
 running = True
 run = True
+a = 'v'
 pygame.display.flip()
 pygame.init()
-a = True
 
 while running:
     while a:
@@ -215,8 +246,15 @@ while running:
 
     if keys[pygame.K_LEFT]:
         touch = player.update('K_LEFT')
+        a = 'K_LEFT'
+        player_group.update()
+        player_group.draw(screen)
+
     if keys[pygame.K_RIGHT]:
+        a = 'K_RIGHT'
         touch = player.update('K_RIGHT')
+        player_group.update()
+        player_group.draw(screen)
 
     all_sprites.draw(screen)
     tiles_group.draw(screen)
@@ -231,9 +269,9 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == 273:
-                for i in range(16):
+                for i in range(32):
                     screen.blit(fon, (0, 0))
-                    touch = player.update(273, touch)
+                    touch = player.update(273, a, i)
                     all_sprites.draw(screen)
                     tiles_group.draw(screen)
                     player_group.draw(screen)
