@@ -27,6 +27,9 @@ def generate_level(level):
                 Tile('soil', x, y)
             elif level[y][x] == '*':
                 Tile('cloud', x, y)
+            elif level[y][x] == '+':
+                Tile('empty', x, y)
+                Enemy(x, y)
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
@@ -123,6 +126,32 @@ class Killer_Tile(pygame.sprite.Sprite):
                                                tile_height * pos_y)
 
 
+class Shoot(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        self.clock = pygame.time.Clock()
+        super().__init__(shoot_sprite_group, all_sprites)
+        self.image = shoot
+        self.rect = self.image.get_rect().move(tile_width * pos_x + 15,
+                                               tile_height * pos_y + 5)
+
+    def update(self, *args):
+        self.image = player_shoot
+
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        self.flag = True
+        self.count = 0
+        self.clock = pygame.time.Clock()
+        super().__init__(player_group, all_sprites)
+        self.image = player_image
+        self.rect = self.image.get_rect().move(tile_width * pos_x + 15,
+                                               tile_height * pos_y + 5)
+
+    def update(self, *args):
+        self.rect.x += 10
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         self.flag = True
@@ -134,7 +163,10 @@ class Player(pygame.sprite.Sprite):
                                                tile_height * pos_y + 5)
 
     def update(self, *args):
-        print(self.flag)
+        if 'shoot' in args:
+            self.image = player_shoot
+            Shoot(self.rect.x + 55, self.rect.y - 15)
+
         self.count += 1
         if self.count % 2 == 0:
             self.image = go_image
@@ -203,6 +235,7 @@ player_group = pygame.sprite.Group()
 killer_tiles_group = pygame.sprite.Group()
 horizontal_borders = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
+shoot_sprite_group = pygame.sprite.Group()
 flaggy = False
 
 # if __name__ == '__main__':
@@ -223,6 +256,9 @@ tile_images = {'wall': load_image('grass 2.png'),
                'cloud': load_image('cloud.png')}
 player_image = load_image('hero.png')
 go_image = load_image('hero_go.png')
+player_shoot = load_image('hero_shoot.png')
+enemy = load_image('enemy.png')
+shoot = load_image('shoot_sprite.png')
 fon = pygame.transform.scale(load_image('anim.gif'), (WIDTH, HEIGHT))
 
 tile_width = tile_height = 64
@@ -268,7 +304,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            if event.key == 273:
+            if event.key == pygame.K_SPACE:
                 for i in range(32):
                     screen.blit(fon, (0, 0))
                     touch = player.update(273, a, i)
@@ -277,8 +313,16 @@ while running:
                     player_group.draw(screen)
                     tiles_group.update()
                     pygame.display.flip()
-            else:
-                a = player.update(event.key)
+
+            if event.key == pygame.K_z:
+                for i in range(32):
+                    screen.blit(fon, (0, 0))
+                    touch = player.update('shoot', a)
+                    all_sprites.draw(screen)
+                    tiles_group.draw(screen)
+                    player_group.draw(screen)
+                    tiles_group.update()
+                    pygame.display.flip()
 
     screen.blit(fon, (0, 0))
     all_sprites.draw(screen)
