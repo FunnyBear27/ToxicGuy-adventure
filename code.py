@@ -4,6 +4,8 @@ import sys
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
+from Player import Player
+from Camera import Camera
 
 
 FPS = 15
@@ -22,7 +24,13 @@ def generate_level(level):
                 Killer_Tile('wall', x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
-                new_player = Player(x, y)
+                new_player = Player(x, y, player_group, all_sprites,
+                                    player_image, tile_height,
+                                    tile_width, player_shoot,
+                                    go_image, killer_tiles_group,
+                                    vertical_borders, horizontal_borders,
+                                    shoot_sprite_group, shoot)
+
             elif level[y][x] == '/':
                 Tile('soil', x, y)
             elif level[y][x] == '*':
@@ -92,36 +100,9 @@ class Border(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x * tile_width, y * tile_height + 50, 50, 1)
 
 
-
-class Camera:
-    # зададим начальный сдвиг камеры
-    def __init__(self):
-        self.width = 800
-        self.dx = 0
-        self.dy = 0
-
-    # сдвинуть объект obj на смещение камеры
-    def apply(self, obj):
-        obj.rect.x += self.dx
-        obj.rect.y += self.dy
-
-    # позиционировать камеру на объекте target
-    def update(self, target):
-        self.dx = -(target.rect.x + target.rect.w // 2 - self.width // 2)
-        self.dy = -(target.rect.y + target.rect.h // 2 - self.width // 2)
-
-
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
-        self.image = tile_images[tile_type]
-        self.rect = self.image.get_rect().move(tile_width * pos_x,
-                                               tile_height * pos_y)
-
-
-class Wall(pygame.sprite.Sprite):
-    def __init__(self, tile_type, pos_x, pos_y):
-        super().__init__(wall_group, all_sprites)
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x,
                                                tile_height * pos_y)
@@ -135,116 +116,20 @@ class Killer_Tile(pygame.sprite.Sprite):
                                                tile_height * pos_y)
 
 
-class Shoot(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
-        self.clock = pygame.time.Clock()
-        super().__init__(shoot_sprite_group, all_sprites)
-        self.image = shoot
-        self.rect = self.image.get_rect().move(pos_x + 15, pos_y + 5)
-        print(self.rect.x, self.rect.y)
-
-    def update(self, *args):
-        self.rect.x += 20
-
-
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         self.flag = True
         self.count = 0
         self.clock = pygame.time.Clock()
         super().__init__(player_group, all_sprites)
-        self.image = player_image
-        self.rect = self.image.get_rect().move(tile_width * pos_x + 15,
-                                               tile_height * pos_y + 5)
-
-    def update(self, *args):
-        self.rect.x += 10
-
-
-class Player(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
-        self.flag = True
-        self.count = 0
-        self.clock = pygame.time.Clock()
-        super().__init__(player_group, all_sprites)
-        self.image = player_image
+        self.image = enemy
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15,
                                                tile_height * pos_y + 5)
 
     def update(self, *args):
         self.count += 1
-        if 'shoot' in args:
-            Shoot(self.rect.x + 30, self.rect.y + 15)
-
-        if 'image' in args:
-            self.image = player_shoot
-            return True
-
-        if self.count % 2 == 0:
-            self.image = go_image
-
-        if self.count % 2 == 1:
-            self.image = player_image
-
-        if 273 in args and 'K_RIGHT' in args:
-            if args[2] < 16:
-                self.rect.y -= 8
-                self.rect.x += 6
-                return True
-
-            if args[2] > 16 and not self.flag:
-                self.rect.y += 8
-                self.rect.x += 6
-
-            if args[2] == 31 and self.flag:
-                self.rect.y -= 8
-                return True
-
-        if 273 in args and 'K_LEFT' in args:
-            if args[2] < 16:
-                print(args)
-                self.rect.y -= 8
-                self.rect.x -= 6
-                return True
-
-            if args[2] > 16 and not self.flag:
-                print(args)
-                self.rect.y += 8
-                self.rect.x -= 6
-
-            if args[2] == 31 and self.flag:
-                self.rect.y -= 8
-                return True
-
-        elif 273 in args and 'K_LEFT' not in args and 'K_RIGHT' not in args:
-            if args[2] < 16:
-                self.rect.y -= 8
-                return True
-
-            if args[2] > 16 and not self.flag:
-                self.rect.y += 8
-                return True
-
-            if args[2] == 31 and self.flag:
-                self.rect.y -= 8
-                return True
-
-        if 'K_RIGHT' in args and self.flag:
-            self.rect.x += 10
-
-        if 'K_LEFT' in args and self.flag and self.rect.x > 250:
-            self.rect.x -= 10
-        elif not self.flag:
-            self.rect.y += 10
-
-        if pygame.sprite.spritecollideany(self, killer_tiles_group):
-            if not pygame.sprite.spritecollideany(self, vertical_borders):
-                if not pygame.sprite.spritecollideany(self, horizontal_borders):
-                    self.flag = True
-                    return False
-        else:
-            self.flag = False
-            return True
+        # if self.count
+        self.rect.x += 1
 
 
 # группы спрайтов
@@ -333,6 +218,11 @@ while running:
                     player_group.draw(screen)
                     tiles_group.update()
                     pygame.display.flip()
+                    camera.update(player)
+                    # обновляем положение всех спрайтов
+                    for sprite in all_sprites:
+                        camera.apply(sprite)
+                    clock.tick()
 
             if event.key == pygame.K_z:
                 touch = player.update('shoot', a)
@@ -345,6 +235,11 @@ while running:
                     player_group.draw(screen)
                     tiles_group.update()
                     pygame.display.flip()
+                    camera.update(player)
+                    # обновляем положение всех спрайтов
+                    for sprite in all_sprites:
+                        camera.apply(sprite)
+                    clock.tick()
 
     screen.blit(fon, (0, 0))
     all_sprites.draw(screen)
