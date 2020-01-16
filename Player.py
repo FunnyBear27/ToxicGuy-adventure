@@ -1,5 +1,7 @@
 import pygame
 from Shoot import Shoot
+import sys
+import os
 
 
 class Player(pygame.sprite.Sprite):
@@ -10,8 +12,10 @@ class Player(pygame.sprite.Sprite):
                  go_image, killer_tiles_group,
                  vertical_borders,
                  horisontal_borders,
-                 shoot_sprite_group, shoot):
+                 shoot_sprite_group, shoot,
+                 enemy_group, finish_group):
 
+        self.enemy_group = enemy_group
         self.horizontal_borders = horisontal_borders
         self.shoot_sprite_group = shoot_sprite_group
         self.all_sprites = all_sprites
@@ -22,6 +26,7 @@ class Player(pygame.sprite.Sprite):
         self.killer_tiles_group = killer_tiles_group
         self.vertical_borders = vertical_borders
         self.horisontal_borders = horisontal_borders
+        self.finish_group = finish_group
 
         self.flag = True
         self.count = 0

@@ -1,16 +1,15 @@
 import os
-import pygame
 import sys
-from PyQt5 import uic
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
+import pygame
 from Player import Player
 from Camera import Camera
+from Startscreen import StartScreen
+from ui import StartScreen
 
 
 FPS = 15
 WIDTH = 800
-HEIGHT = 800
+HEIGHT = 550
 
 
 def generate_level(level):
@@ -19,9 +18,24 @@ def generate_level(level):
         for x in range(len(level[y])):
             if level[y][x] == '.':
                 Tile('empty', x, y)
+
             elif level[y][x] == '#':
                 Border(x, y)
                 Killer_Tile('wall', x, y)
+
+            elif level[y][x] == '/':
+                Tile('soil', x, y)
+
+            elif level[y][x] == '*':
+                Tile('cloud', x, y)
+
+            elif level[y][x] == '+':
+                Tile('empty', x, y)
+                Enemy(x, y)
+
+            elif level[y][x] == ']':
+                Finish('finish', x, y)
+
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 new_player = Player(x, y, player_group, all_sprites,
@@ -29,17 +43,51 @@ def generate_level(level):
                                     tile_width, player_shoot,
                                     go_image, killer_tiles_group,
                                     vertical_borders, horizontal_borders,
-                                    shoot_sprite_group, shoot)
-
-            elif level[y][x] == '/':
-                Tile('soil', x, y)
-            elif level[y][x] == '*':
-                Tile('cloud', x, y)
-            elif level[y][x] == '+':
-                Tile('empty', x, y)
-                Enemy(x, y)
+                                    shoot_sprite_group, shoot, enemy_group,
+                                    finish_group)
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
+
+
+def start_screen():
+    fonn = pygame.transform.scale(load_image('start_screen.png'), (WIDTH, HEIGHT))
+    screen.blit(fonn, (0, 0))
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                posit = pygame.mouse.get_pos()
+                if posit[0] in range(305, 500) and posit[1] in range(140, 200):
+                    return
+
+                elif posit[0] in range(320, 485) and posit[1] in range(390, 440):
+                    pygame.quit()
+                    sys.exit()
+        pygame.display.flip()
+
+
+def finish_screen():
+    fonn = pygame.transform.scale(load_image('finish_screen.png'), (WIDTH, HEIGHT))
+    screen.blit(fonn, (0, 0))
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                posit = pygame.mouse.get_pos()
+                if posit[0] in range(305, 500) and posit[1] in range(140, 200):
+                    return
+
+                elif posit[0] in range(320, 485) and posit[1] in range(390, 440):
+                    pygame.quit()
+                    sys.exit()
+        pygame.display.flip()
+
 
 
 def load_image(name, colorkey=None):
@@ -65,21 +113,16 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-class StartScreen(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        uic.loadUi('beginning screen.ui', self)
-        self.initUI()
+class Finish(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(tiles_group, all_sprites)
+        self.image = tile_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x,
+                                               tile_height * pos_y)
 
-    def initUI(self):
-        self.play_button.clicked.connect(self.begin)
-        self.history_button.clicked.connect(self.story)
-
-    def begin(self):
-        self.close()
-
-    def story(self):
-        pass
+    def update(self):
+        if pygame.sprite.spritecollideany(self, player_group):
+            finish_screen()
 
 
 class Border(pygame.sprite.Sprite):
@@ -102,7 +145,7 @@ class Border(pygame.sprite.Sprite):
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
-        super().__init__(tiles_group, all_sprites)
+        super().__init__(finish_group, all_sprites)
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x,
                                                tile_height * pos_y)
@@ -121,33 +164,34 @@ class Enemy(pygame.sprite.Sprite):
         self.flag = True
         self.count = 0
         self.clock = pygame.time.Clock()
-        super().__init__(player_group, all_sprites)
+        super().__init__(enemy_group, all_sprites)
         self.image = enemy
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15,
                                                tile_height * pos_y + 5)
 
     def update(self, *args):
         self.count += 1
-        # if self.count
-        self.rect.x += 1
+        if self.count % 2 == 0:
+            self.image = enemy_walk
+            self.rect.x += 1
+
+        else:
+            self.image = enemy
+            self.rect.x -= 1
 
 
 # группы спрайтов
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
+finish_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 killer_tiles_group = pygame.sprite.Group()
 horizontal_borders = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
 shoot_sprite_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 flaggy = False
-
-# if __name__ == '__main__':
-#     app = QApplication(sys.argv)
-#     ex = StartScreen()
-#     ex.show()
-#     sys.exit(app.exec())
 
 clock = pygame.time.Clock()
 camera = Camera()
@@ -155,27 +199,34 @@ camera = Camera()
 screen = pygame.display.set_mode((800, 550))
 screen.fill(pygame.Color('blue'))
 
-tile_images = {'wall': load_image('grass 2.png'),
+tile_images = {'wall': load_image('ground.png'),
                'empty': load_image('transparent.png'),
                'soil': load_image('soil.png'),
-               'cloud': load_image('cloud.png')}
+               'cloud': load_image('cloud.png'),
+               'finish': load_image('finish.png')}
+button = load_image('button.png')
 player_image = load_image('hero.png')
 go_image = load_image('hero_go.png')
 player_shoot = load_image('hero_shoot.png')
 enemy = load_image('enemy.png')
+enemy_walk = load_image('enemy_go.png')
 shoot = load_image('shoot_sprite.png')
-fon = pygame.transform.scale(load_image('anim.gif'), (WIDTH, HEIGHT))
+fon = pygame.transform.scale(load_image('cave.png'), (WIDTH, HEIGHT))
 
 tile_width = tile_height = 64
 
 player, level_x, level_y = generate_level(load_level('map.txt'))
 screen.blit(fon, (0, 0))
 
+start_screen()
+
 running = True
 run = True
 a = 'v'
 pygame.display.flip()
 pygame.init()
+pygame.mixer.music.load('music.mp3')
+pygame.mixer.music.play(-1)
 
 while running:
     while a:
@@ -240,6 +291,9 @@ while running:
                     for sprite in all_sprites:
                         camera.apply(sprite)
                     clock.tick()
+
+            if event.key == pygame.K_ESCAPE:
+                start_screen()
 
     screen.blit(fon, (0, 0))
     all_sprites.draw(screen)
