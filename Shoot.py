@@ -17,8 +17,8 @@ class Shoot(pygame.sprite.Sprite):
 
     def update(self, *args):
         if pygame.sprite.spritecollideany(self, self.right_border)\
-                or pygame.sprite.spritecollideany(self,
-                                                  self.left_border):
+                or pygame.sprite.spritecollideany(self, self.left_border)\
+                or pygame.sprite.spritecollideany(self, self.enemy_group):
             pygame.sprite.Sprite.kill(self)
 
         if 'K_RIGHT' in args:

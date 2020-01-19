@@ -57,18 +57,21 @@ class Player(pygame.sprite.Sprite):
             if args[2] > 16 and not self.flag:
                 if pygame.sprite.spritecollideany(self, self.right_border):
                     self.flag = False
-                    return True
-                self.rect.y += 8
+                    self.rect.x -= 10
+                    return 'fall'
+                self.rect.y += 12
                 self.rect.x += 6
                 if pygame.sprite.spritecollideany(self, self.killer_tiles_group):
                     self.flag = True
+                    self.rect.y -= 10
                     return 'fall'
 
             if args[2] < 16 and not pygame.sprite.spritecollideany(self, self.upper_border):
                 if pygame.sprite.spritecollideany(self, self.right_border):
-                    self.flag = False
+                    self.flag = True
+                    self.rect.y -= 30
                     return 'fall'
-                self.rect.y -= 8
+                self.rect.y -= 12
                 self.rect.x += 6
                 return False
             else:
@@ -81,7 +84,7 @@ class Player(pygame.sprite.Sprite):
                     self.flag = False
                     self.rect.x += 7
                     return True
-                self.rect.y += 8
+                self.rect.y += 12
                 self.rect.x -= 6
                 if pygame.sprite.spritecollideany(self, self.killer_tiles_group):
                     self.flag = True
@@ -100,24 +103,24 @@ class Player(pygame.sprite.Sprite):
                 self.flag = False
                 return False
 
-        elif 273 in args and 'K_LEFT' not in args and 'K_RIGHT'\
-                not in args:
-            if args[2] > 16 and not self.flag:
-                if pygame.sprite.spritecollideany(self, self.left_borders):
-                    self.flag = False
-                    return True
-                self.rect.y += 8
-                if pygame.sprite.spritecollideany(self, self.killer_tiles_group):
-                    self.flag = True
-                    return 'fall'
-
-            if args[2] < 16 and\
-                    not pygame.sprite.spritecollideany(self, self.upper_border):
-                self.rect.y -= 8
-                return False
-            else:
-                self.flag = False
-                return False
+        # elif 273 in args and 'K_LEFT' not in args and 'K_RIGHT'\
+        #         not in args:
+        #     if args[2] > 16 and not self.flag:
+        #         if pygame.sprite.spritecollideany(self, self.left_borders):
+        #             self.flag = False
+        #             return True
+        #         self.rect.y += 8
+        #         if pygame.sprite.spritecollideany(self, self.killer_tiles_group):
+        #             self.flag = True
+        #             return 'fall'
+        #
+        #     if args[2] < 16 and\
+        #             not pygame.sprite.spritecollideany(self, self.upper_border):
+        #         self.rect.y -= 8
+        #         return False
+        #     else:
+        #         self.flag = False
+        #         return False
 
         if self.count % 2 == 0 and 'K_RIGH' in args:
             self.image = self.go_image
@@ -133,11 +136,11 @@ class Player(pygame.sprite.Sprite):
 
         if 'K_RIGHT' in args and self.flag \
                 and not pygame.sprite.spritecollideany(self, self.right_border):
-            self.rect.x += 10
+            self.rect.x += 20
 
         if 'K_LEFT' in args and self.flag\
                 and not pygame.sprite.spritecollideany(self, self.left_borders):
-            self.rect.x -= 10
+            self.rect.x -= 20
         elif not self.flag:
             self.rect.y += 10
 
@@ -147,3 +150,4 @@ class Player(pygame.sprite.Sprite):
         else:
             self.flag = False
             return True
+        return True
