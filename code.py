@@ -1,7 +1,6 @@
 import os
 import sys
 import pygame
-import pandas as pd
 from Player import Player
 from Camera import Camera
 
@@ -277,7 +276,7 @@ class UpKiller(pygame.sprite.Sprite):
 class FireballUp(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(all_sprites, fireball_group)
-        self.image = fireball
+        self.image = shoot_vert
         self.rect = self.image.get_rect().move(pos_x, pos_y + 3)
 
     def update(self, *args):
@@ -426,6 +425,7 @@ enemy = load_image('enemy.png')
 enemy_walk = load_image('enemy_go.png')
 dead_enemy = load_image('enemy_dead.png')
 shoot = load_image('shoot_sprite.png')
+shoot_vert = load_image('shoot_sprite_vert.png')
 fon = pygame.transform.scale(load_image('cave.png'), (WIDTH, HEIGHT))
 
 tile_width = tile_height = 64
