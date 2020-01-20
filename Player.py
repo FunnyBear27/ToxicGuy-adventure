@@ -1,7 +1,5 @@
 import pygame
 from Shoot import Shoot
-import sys
-import os
 
 
 class Player(pygame.sprite.Sprite):
@@ -103,24 +101,13 @@ class Player(pygame.sprite.Sprite):
                 self.flag = False
                 return False
 
-        # elif 273 in args and 'K_LEFT' not in args and 'K_RIGHT'\
-        #         not in args:
-        #     if args[2] > 16 and not self.flag:
-        #         if pygame.sprite.spritecollideany(self, self.left_borders):
-        #             self.flag = False
-        #             return True
-        #         self.rect.y += 8
-        #         if pygame.sprite.spritecollideany(self, self.killer_tiles_group):
-        #             self.flag = True
-        #             return 'fall'
-        #
-        #     if args[2] < 16 and\
-        #             not pygame.sprite.spritecollideany(self, self.upper_border):
-        #         self.rect.y -= 8
-        #         return False
-        #     else:
-        #         self.flag = False
-        #         return False
+        elif 273 in args and 'K_LEFT' not in args and 'K_RIGHT'\
+                not in args:
+            if args[2] > 16 and not self.flag:
+                if pygame.sprite.spritecollideany(self, self.left_borders):
+                    self.flag = False
+                    return True
+                self.rect.y += 8
 
         if self.count % 2 == 0 and 'K_RIGH' in args:
             self.image = self.go_image

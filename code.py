@@ -209,7 +209,7 @@ class Rock(pygame.sprite.Sprite):
 class LeftKiller(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites, killer_tiles_group)
-        self.image = tile_images['wall']
+        self.image = tile_images['shooter']
         self.count = 0
         self.rect = self.image.get_rect().move(tile_width * pos_x,
                                                tile_height * pos_y + 3)
@@ -236,7 +236,7 @@ class FireballLeft(pygame.sprite.Sprite):
 class RightKiller(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites, killer_tiles_group)
-        self.image = tile_images['wall']
+        self.image = tile_images['shooter']
         self.count = 0
         self.rect = self.image.get_rect().move(tile_width * pos_x,
                                                tile_height * pos_y + 3)
@@ -414,7 +414,8 @@ tile_images = {'wall': load_image('ground.png'),
                'soil': load_image('soil.png'),
                'finish': load_image('finish.png'),
                'trans_vert': load_image('trans_vert.png'),
-               'rock': load_image('rock.png')}
+               'rock': load_image('rock.png'),
+               'shooter': load_image('shooter.png')}
 
 fireball = load_image('shoot_sprite.png')
 dust = load_image('dust.png')
@@ -442,10 +443,12 @@ level_number = 0
 a = 'v'
 vx = 'K_RIGHT'
 
-pygame.display.flip()
-pygame.init()
+pygame.mixer.init()
 pygame.mixer.music.load('music.mp3')
 pygame.mixer.music.play(-1)
+
+pygame.display.flip()
+pygame.init()
 
 while running:
     while a:
@@ -484,6 +487,7 @@ while running:
                     all_sprites.draw(screen)
                     tiles_group.draw(screen)
                     player_group.draw(screen)
+                    fireball_group.update()
                     tiles_group.update()
                     for elem in enemy_group:
                         if pygame.sprite.spritecollideany(elem, player_group):
@@ -538,9 +542,6 @@ while running:
     pygame.display.flip()
 
     if pygame.sprite.spritecollideany(player, fireball_group):
-        pygame.mixer.music.load('death.wav')
-        pygame.mixer.music.set_volume(0.5)
-        pygame.mixer.music.play(1)
         fin = death_screen()
 
     for elem in enemy_group:
@@ -550,9 +551,9 @@ while running:
                 continue
 
             elif dead == 'alive':
-                pygame.mixer.music.load('death.wav')
-                pygame.mixer.music.set_volume(0.5)
-                pygame.mixer.music.play(1)
+                # pygame.mixer.music.load('death.wav')
+                # pygame.mixer.music.set_volume(0.5)
+                # pygame.mixer.music.play(1)
                 fin = death_screen()
 
     if pygame.sprite.spritecollideany(player, finish_group):
